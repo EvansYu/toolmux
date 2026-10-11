@@ -2,6 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.0.1-blue)](CHANGELOG.md)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey)](https://developer.apple.com/macos/)
+[![macOS only](https://img.shields.io/badge/support-macOS%20only-orange)](https://developer.apple.com/macos/)
 
 **toolmux** 是一个基于 [Ghostty](https://github.com/ghostty-org/ghostty) 终端内核、以 [cmux](https://github.com/manaflow-ai/cmux) 为基础深度定制的个性化 macOS 终端管理器。
 
@@ -64,6 +65,14 @@ toolmux 站在两个优秀开源项目的肩膀上，向以下项目及其作者
 | 右键分组 → 字号菜单 | 增大/减小/重置分组名称字号 |
 
 ---
+
+## 支持的平台
+
+| 平台 | 状态 |
+|---|---|
+| **macOS**（Apple Silicon & Intel，14.0+） | ✅ **目前唯一支持的平台** |
+| Linux | ❌ 暂不支持（上游 cmux/Ghostty 支持 GTK，toolmux 尚未适配） |
+| Windows | ❌ 不支持 |
 
 ## 安装
 
