@@ -138,7 +138,7 @@ enum SidebarGroupNameFontBoost {
     /// UserDefaults key holding the boost in points (Double).
     static let defaultsKey = "sidebarGroupNameFontBoost"
     /// Default boost: group names render 2pt above the scaled base size.
-    static let defaultBoost: CGFloat = 2
+    static let defaultBoost: CGFloat = 1
     /// Step applied by the context-menu larger/smaller actions.
     static let step: CGFloat = 0.5
     /// Allowed boost range: from the plain row size up to +8pt.

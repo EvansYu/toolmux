@@ -242,7 +242,7 @@ final class SidebarWorkspaceRowTableCellView: NSTableCellView {
                 customColorHex: model.snapshot.customColorHex,
                 darkAppearance: model.colorSchemeIsDark
             )
-            backgroundView.layer?.backgroundColor = identity.withAlphaComponent(0.08).cgColor
+            backgroundView.layer?.backgroundColor = identity.withAlphaComponent(0.05).cgColor
         }
         if let edgeColor = style.edgeColor {
             backgroundView.layer?.borderWidth = 1
@@ -567,7 +567,7 @@ final class SidebarWorkspaceRowTableCellView: NSTableCellView {
             darkAppearance: model.colorSchemeIsDark
         )
         railView.isHidden = false
-        railView.layer?.backgroundColor = railColor.withAlphaComponent(0.95).cgColor
+        railView.layer?.backgroundColor = railColor.withAlphaComponent(0.88).cgColor
 
         // Title line
         cloudImageView.configureSidebarWorkspaceAccessory(
@@ -1586,8 +1586,8 @@ final class SidebarWorkspaceRowTableCellView: NSTableCellView {
             // nesting ("can't tell when a workspace is in a group").
             let bgX = outerPad + (model.isGrouped ? SidebarWorkspaceGroupingMetrics.memberIndent : 0)
             backgroundView.frame = NSRect(x: bgX, y: 0, width: max(0, width - outerPad - bgX), height: y)
-            railView.frame = NSRect(x: bgX + 4 - 1, y: 5, width: 3, height: max(0, y - 10))
-            railView.layer?.cornerRadius = 1.5
+            railView.frame = NSRect(x: bgX + 4, y: 5, width: 2, height: max(0, y - 10))
+            railView.layer?.cornerRadius = 1
             let indicatorBounds = NSRect(x: 0, y: 0, width: width, height: y)
             topDropIndicator.position(in: indicatorBounds, at: model.isFirstRow ? 0 : -(model.rowSpacing / 2))
             bottomDropIndicator.position(in: indicatorBounds, at: y - SidebarReorderIndicatorView.thickness + model.rowSpacing / 2)
@@ -1616,15 +1616,17 @@ private func sidebarWorkspaceRowDistinctNSColor(
     if let customColorHex, let color = NSColor(hex: customColorHex) {
         base = color
     } else {
+        // Tokyo Night palette: muted, cool-toned hues that read as
+        // professional chrome rather than toy-like saturation.
         let palette: [NSColor] = [
-            NSColor(calibratedHue: 0.58, saturation: 0.65, brightness: 0.90, alpha: 1), // blue
-            NSColor(calibratedHue: 0.35, saturation: 0.60, brightness: 0.80, alpha: 1), // green
-            NSColor(calibratedHue: 0.08, saturation: 0.70, brightness: 0.95, alpha: 1), // orange
-            NSColor(calibratedHue: 0.78, saturation: 0.55, brightness: 0.85, alpha: 1), // purple
-            NSColor(calibratedHue: 0.00, saturation: 0.60, brightness: 0.90, alpha: 1), // red
-            NSColor(calibratedHue: 0.50, saturation: 0.60, brightness: 0.85, alpha: 1), // teal
-            NSColor(calibratedHue: 0.14, saturation: 0.70, brightness: 0.90, alpha: 1), // amber
-            NSColor(calibratedHue: 0.90, saturation: 0.55, brightness: 0.85, alpha: 1), // pink
+            NSColor(calibratedHue: 0.60, saturation: 0.50, brightness: 0.72, alpha: 1), // #7aa2f7 blue
+            NSColor(calibratedHue: 0.38, saturation: 0.45, brightness: 0.65, alpha: 1), // #9ece6a green
+            NSColor(calibratedHue: 0.06, saturation: 0.52, brightness: 0.72, alpha: 1), // #ff9e64 orange
+            NSColor(calibratedHue: 0.75, saturation: 0.42, brightness: 0.70, alpha: 1), // #bb9af7 purple
+            NSColor(calibratedHue: 0.98, saturation: 0.45, brightness: 0.70, alpha: 1), // #f7768e red
+            NSColor(calibratedHue: 0.52, saturation: 0.48, brightness: 0.72, alpha: 1), // #7dcfff cyan
+            NSColor(calibratedHue: 0.12, saturation: 0.48, brightness: 0.66, alpha: 1), // #e0af68 amber
+            NSColor(calibratedHue: 0.88, saturation: 0.42, brightness: 0.68, alpha: 1), // #ff7a93 pink
         ]
         var hash: UInt64 = 1469598103934665603
         for byte in id.utf8 {

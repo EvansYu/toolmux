@@ -225,7 +225,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
                         String(localized: "workspaceGroup.rename.field.placeholder", defaultValue: "Group name"),
                         text: $nameDraft
                     )
-                    .cmuxFont(size: metrics.nameFontSize, weight: .bold)
+                    .cmuxFont(size: metrics.nameFontSize, weight: .semibold)
                     .textFieldStyle(.plain)
                     .focused($nameEditorFocused)
                     .onSubmit { commitInlineRename() }
@@ -236,7 +236,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
                     .onAppear { nameEditorFocused = true }
                 } else {
                     Text(name)
-                        .cmuxFont(size: metrics.nameFontSize, weight: .bold)
+                        .cmuxFont(size: metrics.nameFontSize, weight: .semibold)
                         .foregroundStyle(isAnchorActive ? Color.primary : Color.primary.opacity(0.9))
                         .lineLimit(1)
                         .truncationMode(.tail)

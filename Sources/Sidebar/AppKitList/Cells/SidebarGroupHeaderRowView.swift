@@ -308,11 +308,11 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
         }
         nameField.font = .systemFont(
             ofSize: GlobalFontMagnification.scaledSize(metrics.nameFontSize, percent: percent),
-            weight: .bold
+            weight: .semibold
         )
         nameField.textColor = model.isAnchorActive
             ? colorResolver.resolvedColor(.labelColor, for: colorScheme)
-            : colorResolver.resolvedColor(.labelColor, for: colorScheme, opacity: 0.9)
+            : colorResolver.resolvedColor(.secondaryLabelColor, for: colorScheme)
 
         // In compact status mode unread folds into the glyph (blue), so the
         // count badge stays off even when no member state rolls up.
