@@ -11927,6 +11927,11 @@ struct VerticalTabsSidebar: View, Equatable {
         let _ = SidebarProfilingSignposts.end(signpost)
         ZStack(alignment: .bottomLeading) {
             VStack(spacing: 0) {
+                // Reserve the titlebar interaction zone (traffic lights +
+                // toolbar buttons overlay this area) so the search row sits
+                // below the chrome instead of overlapping it.
+                Color.clear
+                    .frame(height: sidebarTitlebarInteractionHeight)
                 SidebarSearchRow(searchText: $sidebarSearchText)
                 if CmuxExtensionSidebarSelection.resolvesToDefaultSidebar(effectiveProviderId: effectiveExtensionSidebarProviderId) {
                     workspaceScrollArea(renderContext: renderContext)
