@@ -32,6 +32,59 @@ enum SidebarWorkspaceRenderItem {
         }
     }
 
+    /// Case- and diacritic-insensitive subsequence match ("wrk" matches
+    /// "Workspace", "终端" matches "我的终端"). Empty query matches everything.
+    static func fuzzyMatch(_ query: String, in text: String) -> Bool {
+        let q = query.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
+        let t = text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
+        guard !q.isEmpty else { return true }
+        var qi = q.startIndex
+        for ch in t {
+            if ch == q[qi] {
+                qi = q.index(after: qi)
+                if qi == q.endIndex { return true }
+            }
+        }
+        return false
+    }
+
+    /// Filters the render list by the sidebar search query: a workspace row
+    /// stays when its title matches; a group header stays when its own name
+    /// or any member's title matches (a name-matching group also keeps its
+    /// members visible so the match is shown in context).
+    static func filteredBySearch(
+        _ items: [SidebarWorkspaceRenderItem],
+        query: String,
+        workspaceTitle: (UUID) -> String?,
+        groupName: (UUID) -> String?,
+        memberWorkspaceIds: (UUID) -> [UUID],
+        groupIdForWorkspace: (UUID) -> UUID?
+    ) -> [SidebarWorkspaceRenderItem] {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return items }
+        let nameMatchedGroupIds = Set(items.compactMap { item -> UUID? in
+            guard case .groupHeader(let groupId, _) = item,
+                  let name = groupName(groupId),
+                  fuzzyMatch(trimmed, in: name) else { return nil }
+            return groupId
+        })
+        return items.filter { item in
+            switch item {
+            case .workspace(let workspaceId):
+                if let groupId = groupIdForWorkspace(workspaceId),
+                   nameMatchedGroupIds.contains(groupId) {
+                    return true
+                }
+                return workspaceTitle(workspaceId).map { fuzzyMatch(trimmed, in: $0) } ?? false
+            case .groupHeader(let groupId, _):
+                if nameMatchedGroupIds.contains(groupId) { return true }
+                return memberWorkspaceIds(groupId).contains { memberId in
+                    workspaceTitle(memberId).map { fuzzyMatch(trimmed, in: $0) } ?? false
+                }
+            }
+        }
+    }
+
     static func renderItems(
         tabs: [Workspace],
         groupsById: [UUID: WorkspaceGroup],

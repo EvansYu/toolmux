@@ -103,6 +103,8 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
     @State private var isEditingName = false
     @State private var nameDraft = ""
     @FocusState private var nameEditorFocused: Bool
+    @AppStorage("sidebarGroupNameFontFamily") private var customNameFontFamily = ""
+    @AppStorage("sidebarGroupNameColorHex") private var customNameColorHex = ""
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.cmuxAccentColor) private var accentColor
 
@@ -113,6 +115,13 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
     // default no-op. See SidebarLazyContractProbe.
     @Environment(\.sidebarLazyContractProbe) private var sidebarLazyContractProbe
 #endif
+
+    /// Custom family when configured, otherwise the shared cmux font path.
+    private func groupNameFont(size: CGFloat) -> Font {
+        customNameFontFamily.isEmpty
+            ? .system(size: size, weight: .semibold)
+            : .custom(customNameFontFamily, size: size)
+    }
 
     private var metrics: SidebarWorkspaceGroupHeaderMetrics {
         SidebarWorkspaceGroupHeaderMetrics(fontScale: fontScale, nameFontBoost: nameFontBoost)
@@ -236,8 +245,12 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
                     .onAppear { nameEditorFocused = true }
                 } else {
                     Text(name)
-                        .cmuxFont(size: metrics.nameFontSize, weight: .semibold)
-                        .foregroundStyle(isAnchorActive ? Color.primary : Color.primary.opacity(0.9))
+                        .font(groupNameFont(size: metrics.nameFontSize))
+                        .foregroundStyle(
+                            !customNameColorHex.isEmpty
+                                ? (NSColor(hex: customNameColorHex).map { Color(nsColor: $0) } ?? Color.primary)
+                                : (isAnchorActive ? Color.primary : Color.primary.opacity(0.9))
+                        )
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .contentShape(Rectangle())

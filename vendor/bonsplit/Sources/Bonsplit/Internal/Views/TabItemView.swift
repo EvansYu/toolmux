@@ -375,6 +375,9 @@ struct TabItemView: View {
     @AppStorage(TabControlShortcutHintDebugSettings.xKey) private var controlShortcutHintXOffset = TabControlShortcutHintDebugSettings.defaultX
     @AppStorage(TabControlShortcutHintDebugSettings.yKey) private var controlShortcutHintYOffset = TabControlShortcutHintDebugSettings.defaultY
     @AppStorage(TabControlShortcutHintDebugSettings.alwaysShowKey) private var alwaysShowShortcutHints = TabControlShortcutHintDebugSettings.defaultAlwaysShow
+    /// toolmux appearance settings (written by the sidebar appearance popover).
+    @AppStorage("sidebarTabTitleFontSizeDelta") private var customTitleSizeDelta = 0.0
+    @AppStorage("sidebarTabTitleColorHex") private var customTitleColorHex = ""
 
     var body: some View {
         tabContent
@@ -703,12 +706,16 @@ struct TabItemView: View {
                     .onAppear { titleFieldFocused = true }
                 } else {
                     Text(tab.title)
-                        .font(.system(size: appearance.tabTitleFontSize))
+                        .font(.system(size: appearance.tabTitleFontSize + customTitleSizeDelta))
                         .lineLimit(1)
                         .foregroundStyle(
-                            isSelected
-                                ? TabBarColors.activeText(for: appearance)
-                                : TabBarColors.inactiveText(for: appearance)
+                            !customTitleColorHex.isEmpty
+                                ? Color(hex: customTitleColorHex) ?? (isSelected
+                                    ? TabBarColors.activeText(for: appearance)
+                                    : TabBarColors.inactiveText(for: appearance))
+                                : (isSelected
+                                    ? TabBarColors.activeText(for: appearance)
+                                    : TabBarColors.inactiveText(for: appearance))
                         )
                         .saturation(saturation)
                         .contentShape(Rectangle())
@@ -2057,5 +2064,27 @@ private extension EventModifiers {
         if contains(.option) { flags.insert(.option) }
         if contains(.control) { flags.insert(.control) }
         return flags
+    }
+}
+
+extension Color {
+    /// Parses "#RRGGBB" / "#RRGGBBAA" / "RRGGBB" into a Color.
+    init?(hex: String) {
+        var h = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        if h.hasPrefix("#") { h.removeFirst() }
+        guard h.count == 6 || h.count == 8, let value = UInt64(h, radix: 16) else { return nil }
+        let r, g, b, a: Double
+        if h.count == 6 {
+            r = Double((value >> 16) & 0xFF) / 255
+            g = Double((value >> 8) & 0xFF) / 255
+            b = Double(value & 0xFF) / 255
+            a = 1
+        } else {
+            r = Double((value >> 24) & 0xFF) / 255
+            g = Double((value >> 16) & 0xFF) / 255
+            b = Double((value >> 8) & 0xFF) / 255
+            a = Double(value & 0xFF) / 255
+        }
+        self = Color(.sRGB, red: r, green: g, blue: b, opacity: a)
     }
 }

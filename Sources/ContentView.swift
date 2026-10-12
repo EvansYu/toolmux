@@ -11356,6 +11356,9 @@ struct VerticalTabsSidebar: View, Equatable {
     @State private var frozenShortcutHintsValue: Bool = false
     @State private var pendingSelectedWorkspaceScrollId: UUID?
     @State private var collapsedExtensionSidebarSectionIds: Set<String> = []
+    /// Live query from the search row pinned above the workspace list.
+    /// Filters both group headers and workspace rows (fuzzy subsequence).
+    @State private var sidebarSearchText = ""
     @State private var extensionSidebarWorktreeCreationInFlightSectionIds: Set<String> = []
     // Per-workspace transient checklist UI state (never persisted): which
     // rows show their expanded checklist, and a monotonically bumped token
@@ -11850,11 +11853,18 @@ struct VerticalTabsSidebar: View, Equatable {
         let workspaceGroupMenuSnapshot = WorkspaceGroupMenuSnapshot(
             items: workspaceGroups.map { WorkspaceGroupMenuSnapshot.Item(id: $0.id, name: $0.name) }
         )
-        let workspaceRenderItems = SidebarWorkspaceRenderItem.renderItems(
-            tabs: tabs,
-            groupsById: workspaceGroupById,
-            orderedGroups: workspaceGroups,
-            effectiveMembership: workspaceGroupIdByWorkspaceId
+        let workspaceRenderItems = SidebarWorkspaceRenderItem.filteredBySearch(
+            SidebarWorkspaceRenderItem.renderItems(
+                tabs: tabs,
+                groupsById: workspaceGroupById,
+                orderedGroups: workspaceGroups,
+                effectiveMembership: workspaceGroupIdByWorkspaceId
+            ),
+            query: sidebarSearchText,
+            workspaceTitle: { workspaceById[$0]?.title },
+            groupName: { workspaceGroupById[$0]?.name },
+            memberWorkspaceIds: { memberWorkspaceIdsByGroupId[$0] ?? [] },
+            groupIdForWorkspace: { workspaceGroupIdByWorkspaceId[$0] ?? nil }
         )
         let numberedWorkspaceIndexById = SidebarWorkspaceRenderItem.numberedWorkspaceIndexById(
             from: workspaceRenderItems
@@ -11916,10 +11926,13 @@ struct VerticalTabsSidebar: View, Equatable {
         )
         let _ = SidebarProfilingSignposts.end(signpost)
         ZStack(alignment: .bottomLeading) {
-            if CmuxExtensionSidebarSelection.resolvesToDefaultSidebar(effectiveProviderId: effectiveExtensionSidebarProviderId) {
-                workspaceScrollArea(renderContext: renderContext)
-            } else {
-                extensionSidebarScrollArea(renderContext: renderContext)
+            VStack(spacing: 0) {
+                SidebarSearchRow(searchText: $sidebarSearchText)
+                if CmuxExtensionSidebarSelection.resolvesToDefaultSidebar(effectiveProviderId: effectiveExtensionSidebarProviderId) {
+                    workspaceScrollArea(renderContext: renderContext)
+                } else {
+                    extensionSidebarScrollArea(renderContext: renderContext)
+                }
             }
             if isPresented {
                 SidebarFooter(

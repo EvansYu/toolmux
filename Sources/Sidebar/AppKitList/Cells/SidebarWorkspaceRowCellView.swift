@@ -242,7 +242,12 @@ final class SidebarWorkspaceRowTableCellView: NSTableCellView {
                 customColorHex: model.snapshot.customColorHex,
                 darkAppearance: model.colorSchemeIsDark
             )
-            backgroundView.layer?.backgroundColor = identity.withAlphaComponent(0.05).cgColor
+            let customTintHex = model.settings.workspaceTintColorHex
+            let tintedIdentity: NSColor = (!customTintHex.isEmpty && NSColor(hex: customTintHex) != nil)
+                ? NSColor(hex: customTintHex)!
+                : identity
+            backgroundView.layer?.backgroundColor = tintedIdentity
+                .withAlphaComponent(CGFloat(model.settings.workspaceTintOpacity)).cgColor
         }
         if let edgeColor = style.edgeColor {
             backgroundView.layer?.borderWidth = 1
@@ -649,10 +654,20 @@ final class SidebarWorkspaceRowTableCellView: NSTableCellView {
         }
 #endif
         titleView.stringValue = boundedTitle
-        titleView.font = .systemFont(ofSize: model.scaled(12.5), weight: .semibold)
+        let nameBaseSize = model.scaled(12.5) + model.settings.workspaceNameFontSizeDelta
+        let nameFamily = model.settings.workspaceNameFontFamily
+        titleView.font = nameFamily.isEmpty
+            ? .systemFont(ofSize: nameBaseSize, weight: .semibold)
+            : (NSFont(name: nameFamily, size: nameBaseSize)
+               ?? .systemFont(ofSize: nameBaseSize, weight: .semibold))
         // Title text matches the identity rail color so each workspace's name
-        // and its leading bar read as one unit.
-        titleView.textColor = railColor
+        // and its leading bar read as one unit (a custom color overrides).
+        if !model.settings.workspaceNameColorHex.isEmpty,
+           let customColor = NSColor(hex: model.settings.workspaceNameColorHex) {
+            titleView.textColor = customColor
+        } else {
+            titleView.textColor = railColor
+        }
         titleView.alphaValue = snapshot.isMuted ? 0.6 : 1
 
         // Badges / spinner / close
@@ -1619,14 +1634,14 @@ private func sidebarWorkspaceRowDistinctNSColor(
         // Tokyo Night palette: muted, cool-toned hues that read as
         // professional chrome rather than toy-like saturation.
         let palette: [NSColor] = [
-            NSColor(calibratedHue: 0.60, saturation: 0.50, brightness: 0.72, alpha: 1), // #7aa2f7 blue
-            NSColor(calibratedHue: 0.38, saturation: 0.45, brightness: 0.65, alpha: 1), // #9ece6a green
-            NSColor(calibratedHue: 0.06, saturation: 0.52, brightness: 0.72, alpha: 1), // #ff9e64 orange
-            NSColor(calibratedHue: 0.75, saturation: 0.42, brightness: 0.70, alpha: 1), // #bb9af7 purple
-            NSColor(calibratedHue: 0.98, saturation: 0.45, brightness: 0.70, alpha: 1), // #f7768e red
-            NSColor(calibratedHue: 0.52, saturation: 0.48, brightness: 0.72, alpha: 1), // #7dcfff cyan
-            NSColor(calibratedHue: 0.12, saturation: 0.48, brightness: 0.66, alpha: 1), // #e0af68 amber
-            NSColor(calibratedHue: 0.88, saturation: 0.42, brightness: 0.68, alpha: 1), // #ff7a93 pink
+            NSColor(calibratedHue: 0.60, saturation: 0.38, brightness: 0.60, alpha: 1), // muted blue
+            NSColor(calibratedHue: 0.38, saturation: 0.34, brightness: 0.55, alpha: 1), // muted green
+            NSColor(calibratedHue: 0.06, saturation: 0.40, brightness: 0.60, alpha: 1), // muted orange
+            NSColor(calibratedHue: 0.75, saturation: 0.32, brightness: 0.58, alpha: 1), // muted purple
+            NSColor(calibratedHue: 0.98, saturation: 0.34, brightness: 0.58, alpha: 1), // muted red
+            NSColor(calibratedHue: 0.52, saturation: 0.36, brightness: 0.60, alpha: 1), // muted cyan
+            NSColor(calibratedHue: 0.12, saturation: 0.36, brightness: 0.55, alpha: 1), // muted amber
+            NSColor(calibratedHue: 0.88, saturation: 0.32, brightness: 0.56, alpha: 1), // muted pink
         ]
         var hash: UInt64 = 1469598103934665603
         for byte in id.utf8 {

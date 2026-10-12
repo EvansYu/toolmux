@@ -23,6 +23,20 @@ struct SidebarTabItemSettingsSnapshot: Equatable {
     /// Persisted as `sidebarGroupNameFontBoost`; adjustable from the group
     /// header context menu.
     let groupNameFontBoost: CGFloat
+    /// Optional custom font family for group names; empty = system font.
+    let groupNameFontFamily: String
+    /// Optional custom group-name color (hex); empty = default label color.
+    let groupNameColorHex: String
+    /// Workspace title size delta in points (0 = default 12.5pt).
+    let workspaceNameFontSizeDelta: CGFloat
+    /// Optional custom font family for workspace names; empty = system font.
+    let workspaceNameFontFamily: String
+    /// Optional custom workspace-name color (hex); empty = identity color.
+    let workspaceNameColorHex: String
+    /// Optional workspace background tint color (hex); empty = identity color.
+    let workspaceTintColorHex: String
+    /// Workspace background tint opacity (0…0.2).
+    let workspaceTintOpacity: Double
     let showsGitBranch: Bool
     let branchDirectory: SidebarWorkspaceBranchDirectorySettings
     let details: SidebarWorkspaceDetailSettings
@@ -114,6 +128,15 @@ struct SidebarTabItemSettingsSnapshot: Equatable {
         iMessageModeEnabled = IMessageModeSettings.isEnabled(defaults: defaults)
         workspaceTodoChecklistStyle = settings.value(for: betaFeatures.workspaceTodosChecklistStyle)
         groupNameFontBoost = SidebarGroupNameFontBoost.current(defaults: defaults)
+        groupNameFontFamily = defaults.string(forKey: SidebarAppearanceDefaults.groupNameFontFamilyKey) ?? ""
+        groupNameColorHex = defaults.string(forKey: SidebarAppearanceDefaults.groupNameColorHexKey) ?? ""
+        workspaceNameFontSizeDelta = CGFloat(defaults.double(forKey: SidebarAppearanceDefaults.workspaceNameFontSizeDeltaKey))
+        workspaceNameFontFamily = defaults.string(forKey: SidebarAppearanceDefaults.workspaceNameFontFamilyKey) ?? ""
+        workspaceNameColorHex = defaults.string(forKey: SidebarAppearanceDefaults.workspaceNameColorHexKey) ?? ""
+        workspaceTintColorHex = defaults.string(forKey: SidebarAppearanceDefaults.workspaceTintColorHexKey) ?? ""
+        workspaceTintOpacity = defaults.object(forKey: SidebarAppearanceDefaults.workspaceTintOpacityKey) != nil
+            ? defaults.double(forKey: SidebarAppearanceDefaults.workspaceTintOpacityKey)
+            : 0.05
         self.accentColor = accentColor
     }
 
