@@ -21,13 +21,14 @@ struct SidebarSearchRow: View {
                 onSubmit: {},
                 onCommandSubmit: {}
             )
+            .frame(height: 29)
             Button {
                 showsAppearanceSettings.toggle()
             } label: {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .frame(width: 20, height: 22)
+                    .frame(width: 24, height: 24)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -43,9 +44,8 @@ struct SidebarSearchRow: View {
                 SidebarAppearanceSettingsView()
             }
         }
-        .padding(.horizontal, 3)
-        .padding(.top, 4)
-        .padding(.bottom, 6)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
     }
 }
 
