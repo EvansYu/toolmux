@@ -54,6 +54,7 @@ struct SidebarSearchRow: View {
 /// Every control persists to UserDefaults; rows pick changes up through the
 /// existing settings snapshot rebuild (and tabs through @AppStorage).
 struct SidebarAppearanceSettingsView: View {
+    @Environment(\.cmuxAccentColor) private var cmuxAccent
     @AppStorage(SidebarAppearanceDefaults.groupNameFontBoostKey) private var groupNameBoost = SidebarGroupNameFontBoost.defaultBoost
     @AppStorage(SidebarAppearanceDefaults.groupNameFontFamilyKey) private var groupNameFontFamily = ""
     @AppStorage(SidebarAppearanceDefaults.groupNameColorHexKey) private var groupNameColorHex = ""
@@ -72,11 +73,11 @@ struct SidebarAppearanceSettingsView: View {
 
     private static let fontChoices: [(name: String, label: String)] = [
         ("", "系统默认"),
-        ("Maple Mono NF CN", "Maple Mono NF CN"),
+        ("Maple Mono NF CN", "Maple Mono"),
         ("Menlo", "Menlo"),
         ("SF Mono", "SF Mono"),
-        ("PingFang SC", "PingFang SC"),
-        ("Helvetica Neue", "Helvetica Neue"),
+        ("PingFang SC", "苹方"),
+        ("Helvetica Neue", "Helvetica"),
     ]
 
     private static let themeChoices: [String] = [
@@ -86,122 +87,166 @@ struct SidebarAppearanceSettingsView: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("外观设置")
-                .font(.headline)
+                .cmuxFont(size: 13, weight: .bold)
+                .foregroundStyle(.primary)
 
-            fontSection(
-                title: "分组名称",
-                sizeValue: $groupNameBoost,
-                sizeRange: 0...8,
-                sizeLabel: { v in "字号 +\(String(format: "%.1f", v))pt" },
-                family: $groupNameFontFamily,
-                colorHex: $groupNameColorHex
-            )
-
-            fontSection(
-                title: "工作区名称",
-                sizeValue: $workspaceNameSizeDelta,
-                sizeRange: -2...4,
-                sizeLabel: { v in "字号 \(v >= 0 ? "+" : "")\(String(format: "%.1f", v))pt" },
-                family: $workspaceNameFontFamily,
-                colorHex: $workspaceNameColorHex
-            )
-
-            GroupBox("工作区背景") {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("颜色")
-                        Spacer()
-                        SidebarColorWell(hexString: $workspaceTintColorHex)
-                        if !workspaceTintColorHex.isEmpty {
-                            Button("清除") { workspaceTintColorHex = "" }
-                                .font(.caption)
-                        }
-                    }
-                    HStack {
-                        Text("浓度")
-                        Slider(value: $workspaceTintOpacity, in: 0...0.2, step: 0.01)
-                        Text(String(format: "%.0f%%", workspaceTintOpacity * 100))
-                            .font(.caption).monospacedDigit()
-                            .frame(width: 34, alignment: .trailing)
-                    }
+            SectionCard(title: "分组名称") {
+                VStack(spacing: 8) {
+                    SliderRow(
+                        label: "字号",
+                        value: $groupNameBoost,
+                        range: 0...8,
+                        format: { "+\(String(format: "%.1f", $0))pt" }
+                    )
+                    PickerRow(label: "字体", selection: $groupNameFontFamily, choices: Self.fontChoices)
+                    ColorRow(label: "颜色", hexString: $groupNameColorHex)
                 }
             }
 
-            GroupBox("终端主题") {
+            SectionCard(title: "工作区名称") {
+                VStack(spacing: 8) {
+                    SliderRow(
+                        label: "字号",
+                        value: $workspaceNameSizeDelta,
+                        range: -2...4,
+                        format: { ($0 >= 0 ? "+" : "") + String(format: "%.1f", $0) + "pt" }
+                    )
+                    PickerRow(label: "字体", selection: $workspaceNameFontFamily, choices: Self.fontChoices)
+                    ColorRow(label: "颜色", hexString: $workspaceNameColorHex)
+                }
+            }
+
+            SectionCard(title: "工作区背景") {
+                VStack(spacing: 8) {
+                    ColorRow(label: "颜色", hexString: $workspaceTintColorHex)
+                    SliderRow(
+                        label: "浓度",
+                        value: $workspaceTintOpacity,
+                        range: 0...0.2,
+                        format: { String(format: "%.0f%%", $0 * 100) }
+                    )
+                }
+            }
+
+            SectionCard(title: "终端主题") {
                 Picker("主题", selection: $ghosttyTheme) {
                     ForEach(Self.themeChoices, id: \.self) { Text($0).tag($0) }
                 }
                 .labelsHidden()
+                .pickerStyle(.menu)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .onChange(of: ghosttyTheme) { newTheme in
                     SidebarGhosttyTheme.set(newTheme)
                 }
             }
 
-            GroupBox("页签名称（右侧）") {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("字号")
-                        Slider(value: $tabTitleSizeDelta, in: -2...4, step: 0.5)
-                        Text(String(format: "%+.1f", tabTitleSizeDelta))
-                            .font(.caption).monospacedDigit()
-                            .frame(width: 34, alignment: .trailing)
-                    }
-                    HStack {
-                        Text("颜色")
-                        Spacer()
-                        SidebarColorWell(hexString: $tabTitleColorHex)
-                        if !tabTitleColorHex.isEmpty {
-                            Button("清除") { tabTitleColorHex = "" }
-                                .font(.caption)
-                        }
-                    }
+            SectionCard(title: "页签名称") {
+                VStack(spacing: 8) {
+                    SliderRow(
+                        label: "字号",
+                        value: $tabTitleSizeDelta,
+                        range: -2...4,
+                        format: { String(format: "%+.1f", $0) }
+                    )
+                    ColorRow(label: "颜色", hexString: $tabTitleColorHex)
                 }
             }
         }
-        .padding(12)
-        .frame(width: 300)
+        .padding(14)
+        .frame(width: 280)
     }
+}
 
-    @ViewBuilder
-    private func fontSection(
-        title: String,
-        sizeValue: Binding<Double>,
-        sizeRange: ClosedRange<Double>,
-        sizeLabel: @escaping (Double) -> String,
-        family: Binding<String>,
-        colorHex: Binding<String>
-    ) -> some View {
-        GroupBox(title) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("字号")
-                    Slider(value: sizeValue, in: sizeRange, step: 0.5)
-                    Text(sizeLabel(sizeValue.wrappedValue))
-                        .font(.caption).monospacedDigit()
-                        .frame(width: 58, alignment: .trailing)
+/// Dark rounded card matching the app's dialog/palette aesthetic.
+private struct SectionCard<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .cmuxFont(size: 11, weight: .medium)
+                .foregroundStyle(.secondary)
+            content()
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor))
+        )
+    }
+}
+
+/// Label + slider + value readout, app-style compact row.
+private struct SliderRow: View {
+    let label: String
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let format: (Double) -> String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .cmuxFont(size: 11, weight: .regular)
+                .foregroundStyle(.primary)
+            Slider(value: $value, in: range, step: 0.5)
+            Text(format(value))
+                .cmuxFont(size: 11, design: .monospaced)
+                .foregroundStyle(.secondary)
+                .frame(width: 44, alignment: .trailing)
+        }
+    }
+}
+
+/// Label + segmented font picker, app-style compact row.
+private struct PickerRow: View {
+    let label: String
+    @Binding var selection: String
+    let choices: [(name: String, label: String)]
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .cmuxFont(size: 11, weight: .regular)
+                .foregroundStyle(.primary)
+            Spacer(minLength: 4)
+            Picker(label, selection: $selection) {
+                ForEach(choices, id: \.name) { choice in
+                    Text(choice.label).tag(choice.name)
                 }
-                HStack {
-                    Text("字体")
-                    Spacer()
-                    Picker("字体", selection: family) {
-                        ForEach(Self.fontChoices, id: \.name) { choice in
-                            Text(choice.label).tag(choice.name)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(width: 170)
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .frame(width: 140)
+        }
+    }
+}
+
+/// Label + color well + clear action, app-style compact row.
+private struct ColorRow: View {
+    let label: String
+    @Binding var hexString: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .cmuxFont(size: 11, weight: .regular)
+                .foregroundStyle(.primary)
+            Spacer(minLength: 4)
+            SidebarColorWell(hexString: $hexString)
+            if !hexString.isEmpty {
+                Button {
+                    hexString = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
                 }
-                HStack {
-                    Text("颜色")
-                    Spacer()
-                    SidebarColorWell(hexString: colorHex)
-                    if !colorHex.wrappedValue.isEmpty {
-                        Button("清除") { colorHex.wrappedValue = "" }
-                            .font(.caption)
-                    }
-                }
+                .buttonStyle(.plain)
+                .help("恢复默认")
             }
         }
     }
