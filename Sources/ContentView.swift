@@ -12357,9 +12357,11 @@ struct VerticalTabsSidebar: View, Equatable {
             .overlay(alignment: .top) {
                 if isPresented {
                     // The sidebar top strip remains draggable and handles
-                    // double-clicks with the standard titlebar action.
+                    // double-clicks with the standard titlebar action. Kept
+                    // thin: the search row above the scroll area already
+                    // occupies the titlebar interaction zone.
                     WindowDragHandleView()
-                        .frame(height: sidebarTitlebarInteractionHeight)
+                        .frame(height: 4)
                         .background(TitlebarDoubleClickMonitorView())
                 }
             }
