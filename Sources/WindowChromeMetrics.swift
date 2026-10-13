@@ -91,8 +91,11 @@ enum SidebarWorkspaceListMetrics {
         trailingAccessoryRightEdgeOffset + (controlWidth / 2)
     }
 
+    /// The sidebar search row (plus its titlebar spacer) already pushes the
+    /// scroll area below the titlebar chrome, so the scroll view no longer
+    /// needs its own titlebar-clearing top inset.
     static var scrollTopInset: CGFloat {
-        max(0, firstRowTopOffset - rowVerticalPadding)
+        0
     }
 }
 
