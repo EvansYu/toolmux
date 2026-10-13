@@ -121,12 +121,26 @@ struct SidebarAppearanceSettingsView: View {
             SectionCard(title: "工作区背景") {
                 VStack(spacing: 8) {
                     ColorRow(label: "颜色", hexString: $workspaceTintColorHex)
-                    SliderRow(
-                        label: "浓度",
-                        value: $workspaceTintOpacity,
-                        range: 0...0.2,
-                        format: { String(format: "%.0f%%", $0 * 100) }
-                    )
+                    // Integer-range slider: 0...0.2 with a 0.01 stride trips
+                    // SwiftUI Slider's floating-point stride assertion
+                    // (0.2 / 0.01 is not exact in binary); scale ×100 instead.
+                    HStack(spacing: 8) {
+                        Text("浓度")
+                            .cmuxFont(size: 11, weight: .regular)
+                            .foregroundStyle(.primary)
+                        Slider(
+                            value: Binding(
+                                get: { workspaceTintOpacity * 100 },
+                                set: { workspaceTintOpacity = $0 / 100 }
+                            ),
+                            in: 0...20,
+                            step: 1
+                        )
+                        Text(String(format: "%.0f%%", workspaceTintOpacity * 100))
+                            .cmuxFont(size: 11, design: .monospaced)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44, alignment: .trailing)
+                    }
                 }
             }
 
