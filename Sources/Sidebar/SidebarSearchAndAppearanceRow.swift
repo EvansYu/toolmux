@@ -15,7 +15,7 @@ struct SidebarSearchRow: View {
                 text: $searchText,
                 placeholder: String(
                     localized: "sidebar.search.placeholder",
-                    defaultValue: "Search groups & workspaces"
+                    defaultValue: "搜索分组和工作区"
                 ),
                 accessibilityIdentifier: "sidebar.searchField",
                 onSubmit: {},
@@ -27,7 +27,7 @@ struct SidebarSearchRow: View {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .frame(width: 24, height: 24)
+                    .frame(width: 20, height: 22)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -43,7 +43,7 @@ struct SidebarSearchRow: View {
                 SidebarAppearanceSettingsView()
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 3)
         .padding(.top, 4)
         .padding(.bottom, 6)
     }
