@@ -356,7 +356,14 @@ func sidebarSelectedWorkspaceBackgroundNSColor(
         return parsed
     }
     if activeTabIndicatorStyle == .solidFill || !subtleSelection {
-        return accent.nsColor(for: colorScheme)
+        // Muted selection: the accent composited at low opacity over the
+        // sidebar surface reads as a soft blue-gray wash instead of a
+        // saturated fill that fights the identity colors.
+        let surface = NSColor(white: colorScheme == .dark ? 0.16 : 0.93, alpha: 1)
+        return cmuxCompositedNSColor(
+            accent.nsColor(for: colorScheme).withAlphaComponent(0.22),
+            over: surface
+        )
     }
     let surface = NSColor(white: colorScheme == .dark ? 0.16 : 0.93, alpha: 1)
     let fill = CmuxSelectionFill.resolve(

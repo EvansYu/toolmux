@@ -251,9 +251,20 @@ final class TerminalPanel: Panel, ObservableObject {
     }
 
     func updateTitle(_ newTitle: String) {
-        let trimmed = AutomaticTerminalTitle(newTitle)?.value.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let trimmed, !trimmed.isEmpty && title != trimmed {
-            title = trimmed
+        var cleaned = AutomaticTerminalTitle(newTitle)?.value.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        // toolmux: shells that bake "user@host:" into the terminal title
+        // (zsh's default PROMPT) produce cluttered workspace names. When the
+        // segment before the first colon contains "@" and no path separator,
+        // it is a user@host prefix — drop it and keep just the path.
+        if let colon = cleaned.firstIndex(of: ":") {
+            let prefix = String(cleaned[cleaned.startIndex..<colon])
+            if prefix.contains("@"), !prefix.contains("/") {
+                cleaned = String(cleaned[cleaned.index(after: colon)...])
+                    .trimmingCharacters(in: .whitespaces)
+            }
+        }
+        if !cleaned.isEmpty, title != cleaned {
+            title = cleaned
         }
     }
 

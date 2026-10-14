@@ -724,7 +724,9 @@ final class SidebarWorkspaceRowTableCellView: NSTableCellView {
         let effectiveSubtitle = snapshot.compactStatusGlyph != nil
             ? nil
             : model.latestNotificationText ?? conversationSubtitle
-        let subtitleLineLimit = model.latestNotificationText == nil ? 2 : settings.notificationMessageLineLimit
+        // toolmux: one-line descriptions only — multi-line subtitles eat
+        // vertical space in the sidebar without adding scannable value.
+        let subtitleLineLimit = 1
         subtitleView.isHidden = effectiveSubtitle == nil
         if let effectiveSubtitle {
             subtitleView.maximumNumberOfLines = subtitleLineLimit
