@@ -2301,7 +2301,7 @@ extension Workspace {
         adoptPersistedStableSurfaceId(from: snapshot, panelId: panelId)
 
         if let title = snapshot.automaticTitleForRestore?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
-            panelTitles[panelId] = title
+            panelTitles[panelId] = TerminalPanel.strippingUserHostPrefix(title)
         }
 
         setPanelCustomTitle(panelId: panelId, title: snapshot.customTitle, source: snapshot.effectiveCustomTitleSource ?? .user, propagateToCloud: false)

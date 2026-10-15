@@ -131,8 +131,21 @@ final class TerminalPanel: Panel, ObservableObject {
     /// Shared monotonic gate for AppKit and workspace-overlay flash renderers.
     private var attentionFlashActiveUntil: TimeInterval = 0
 
+    /// Strips the "user@host:" prefix shells bake into terminal titles via
+    /// the default PROMPT. When the segment before the first colon contains
+    /// "@" and no path separator, it is a user@host prefix; only the path
+    /// portion carries scannable information.
+    static func strippingUserHostPrefix(_ rawTitle: String) -> String {
+        guard let colon = rawTitle.firstIndex(of: ":") else { return rawTitle }
+        let prefix = String(rawTitle[rawTitle.startIndex..<colon])
+        guard prefix.contains("@"), !prefix.contains("/") else { return rawTitle }
+        return String(rawTitle[rawTitle.index(after: colon)...])
+            .trimmingCharacters(in: .whitespaces)
+    }
+
     var displayTitle: String {
-        title.isEmpty ? "Terminal" : title
+        let stripped = Self.strippingUserHostPrefix(title)
+        return stripped.isEmpty ? "Terminal" : stripped
     }
 
     var displayIcon: String? {
@@ -174,7 +187,9 @@ final class TerminalPanel: Panel, ObservableObject {
         self.id = surface.id
         self.workspaceId = workspaceId
         self.surface = surface
-        self.title = surface.agentPanelTitle.flatMap { AutomaticTerminalTitle($0)?.value } ?? "Terminal"
+        self.title = Self.strippingUserHostPrefix(
+            surface.agentPanelTitle.flatMap { AutomaticTerminalTitle($0)?.value } ?? "Terminal"
+        )
         surface.onExplicitInput = { [weak self] in
             self?.hasReceivedExplicitInput = true
         }
@@ -251,18 +266,9 @@ final class TerminalPanel: Panel, ObservableObject {
     }
 
     func updateTitle(_ newTitle: String) {
-        var cleaned = AutomaticTerminalTitle(newTitle)?.value.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        // toolmux: shells that bake "user@host:" into the terminal title
-        // (zsh's default PROMPT) produce cluttered workspace names. When the
-        // segment before the first colon contains "@" and no path separator,
-        // it is a user@host prefix — drop it and keep just the path.
-        if let colon = cleaned.firstIndex(of: ":") {
-            let prefix = String(cleaned[cleaned.startIndex..<colon])
-            if prefix.contains("@"), !prefix.contains("/") {
-                cleaned = String(cleaned[cleaned.index(after: colon)...])
-                    .trimmingCharacters(in: .whitespaces)
-            }
-        }
+        let cleaned = Self.strippingUserHostPrefix(
+            AutomaticTerminalTitle(newTitle)?.value.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        )
         if !cleaned.isEmpty, title != cleaned {
             title = cleaned
         }

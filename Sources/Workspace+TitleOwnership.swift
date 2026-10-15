@@ -147,7 +147,9 @@ extension Workspace {
         let admitted = panels[panelId]?.panelType == .terminal
             ? AutomaticTerminalTitle(candidate)?.value : candidate
         guard let admitted else { return false }
-        let trimmed = admitted.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = TerminalPanel.strippingUserHostPrefix(
+            admitted.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
         guard !trimmed.isEmpty, panels[panelId] != nil else { return false }
         guard remote != nil || shouldApplyRestoredPanelTitle(panelId: panelId, rawTitle: trimmed) else {
             return false
@@ -156,7 +158,8 @@ extension Workspace {
         // local PTY's stable title must not leak into panelTitles or the
         // workspace title there.
         let trimmedStable = remote == nil
-            ? stableTitle?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+            ? stableTitle.map { TerminalPanel.strippingUserHostPrefix(
+                $0.trimmingCharacters(in: .whitespacesAndNewlines)) } : nil
         let stable = trimmedStable.flatMap { $0.isEmpty ? nil : $0 } ?? trimmed
 
         // Runs on every frame, which is what keeps the animation. It still
