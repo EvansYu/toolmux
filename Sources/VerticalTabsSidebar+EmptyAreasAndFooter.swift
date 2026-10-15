@@ -93,7 +93,9 @@ enum SidebarFooterPresentationPolicy {
         isProActive: Bool,
         isProStatusKnown: Bool = true
     ) -> Bool {
-        isProStatusKnown && !isProActive
+        // toolmux: a local personal build has no Pro backend — the upgrade
+        // badge can never activate, so it never renders.
+        false
     }
 }
 
