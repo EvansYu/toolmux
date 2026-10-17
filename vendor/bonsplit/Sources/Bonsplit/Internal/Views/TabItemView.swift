@@ -704,27 +704,39 @@ struct TabItemView: View {
                         if !focused { commitTitleRename() }
                     }
                     .onAppear { titleFieldFocused = true }
-                } else {
+                } else if isSelected {
+                    // Only the SELECTED tab's title carries a tap gesture for
+                    // inline rename. An unselected title must NOT have any
+                    // gesture of its own: SwiftUI gives child gestures
+                    // precedence, so a gesture here would swallow the tap and
+                    // the outer onSelect() at the tab level would never fire —
+                    // making tab switching feel broken when clicking titles.
                     Text(tab.title)
                         .font(.system(size: appearance.tabTitleFontSize + customTitleSizeDelta))
                         .lineLimit(1)
                         .foregroundStyle(
                             !customTitleColorHex.isEmpty
-                                ? Color(hex: customTitleColorHex) ?? (isSelected
-                                    ? TabBarColors.activeText(for: appearance)
-                                    : TabBarColors.inactiveText(for: appearance))
-                                : (isSelected
-                                    ? TabBarColors.activeText(for: appearance)
-                                    : TabBarColors.inactiveText(for: appearance))
+                                ? Color(hex: customTitleColorHex) ?? TabBarColors.activeText(for: appearance)
+                                : TabBarColors.activeText(for: appearance)
                         )
                         .saturation(saturation)
                         .contentShape(Rectangle())
-                        // Only the selected tab's title starts an edit on
-                        // click; unselected titles keep their select gesture
-                        // so switching tabs stays one click.
-                        .onTapGesture {
-                            if isSelected { beginTitleRename() }
+                        .onTapGesture { beginTitleRename() }
+                        .tabGeometryDebugFrame { frame in
+                            debugRecordGeometry(which: "title", frame: frame)
                         }
+                } else {
+                    // Unselected: no gesture — the tap falls through to the
+                    // tab-level onSelect() so switching works from the title.
+                    Text(tab.title)
+                        .font(.system(size: appearance.tabTitleFontSize + customTitleSizeDelta))
+                        .lineLimit(1)
+                        .foregroundStyle(
+                            !customTitleColorHex.isEmpty
+                                ? Color(hex: customTitleColorHex) ?? TabBarColors.inactiveText(for: appearance)
+                                : TabBarColors.inactiveText(for: appearance)
+                        )
+                        .saturation(saturation)
                         .tabGeometryDebugFrame { frame in
                             debugRecordGeometry(which: "title", frame: frame)
                         }
