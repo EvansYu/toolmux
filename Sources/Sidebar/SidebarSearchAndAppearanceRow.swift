@@ -80,11 +80,46 @@ struct SidebarAppearanceSettingsView: View {
         ("Helvetica Neue", "Helvetica"),
     ]
 
-    private static let themeChoices: [String] = [
-        "TokyoNight Storm", "TokyoNight Night", "Catppuccin Mocha",
-        "GitHub Dark Default", "GitHub Dark", "Atom One Dark", "Dracula",
-        "Catppuccin Frappe", "TokyoNight Moon", "Desert",
+    /// Recommended themes shown first in the picker.
+    private static let recommendedThemes: [String] = [
+        "TokyoNight Storm", "TokyoNight Night", "TokyoNight Moon",
+        "Catppuccin Mocha", "Catppuccin Macchiato", "Catppuccin Frappe",
+        "GitHub Dark Default", "GitHub Dark Dimmed", "GitHub Dark",
+        "Atom One Dark", "Dracula", "Dracula+",
+        "Nord", "Kanagawa Wave", "Kanagawa Dragon",
+        "Gruvbox Dark", "Gruvbox Material Dark", "Everforest Dark Hard",
+        "Rose Pine", "Rose Pine Moon", "Ayu", "Ayu Mirage",
+        "Monokai Pro", "Monokai Classic", "Molokai",
+        "Material Ocean", "Material Darker", "Solarized Darcula",
     ]
+
+    /// All themes bundled with Ghostty (read once from the app bundle),
+    /// recommended first then the rest alphabetically.
+    private static let allThemes: [String] = {
+        let recommended = recommendedThemes.filter { themeExists($0) }
+        var seen = Set(recommended)
+        guard let themesURL = Bundle.main.resourceURL?
+            .appendingPathComponent("ghostty/themes", isDirectory: true),
+            let files = try? FileManager.default.contentsOfDirectory(
+                at: themesURL, includingPropertiesForKeys: nil) else {
+            return recommended
+        }
+        let rest = files
+            .map { $0.deletingPathExtension().lastPathComponent }
+            .filter { !seen.contains($0) && !$0.hasPrefix(".") }
+            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        for name in rest { seen.insert(name) }
+        return recommended + rest
+    }()
+
+    private static func themeExists(_ name: String) -> Bool {
+        guard let themesURL = Bundle.main.resourceURL?
+            .appendingPathComponent("ghostty/themes", isDirectory: true) else {
+            return false
+        }
+        return FileManager.default.fileExists(
+            atPath: themesURL.appendingPathComponent(name).path)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -146,7 +181,7 @@ struct SidebarAppearanceSettingsView: View {
 
             SectionCard(title: "终端主题") {
                 Picker("主题", selection: $ghosttyTheme) {
-                    ForEach(Self.themeChoices, id: \.self) { Text($0).tag($0) }
+                    ForEach(Self.allThemes, id: \.self) { Text($0).tag($0) }
                 }
                 .labelsHidden()
                 .pickerStyle(.menu)
